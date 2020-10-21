@@ -1,3 +1,6 @@
+import functools
+import re
+
 TABLE_SIZE = 10
 
 
@@ -44,17 +47,84 @@ class HashTable:
             return None
 
 
+# can utilize regex
+def is_identifier(token: str):
+    if not token[0].isalpha():
+        return False
+    for character in token:
+        if not character.isalnum():
+            return False
+    return True
+
+
+def is_integer_constant(token: str):
+    if token[0] == '0' and len(token) > 1:
+        return False
+    try:
+        int(token)
+    except ValueError:
+        return False
+    return True
+
+
 if __name__ == "__main__":
     hash_table = HashTable(TABLE_SIZE, custom_hash)
-    hash_table.insert("istike")
-    hash_value, index = hash_table.insert("istike")
+    tokens = open("token.in", "r")
+    operators = tokens.readline().split()
+    separators = tokens.readline().split()
+    delimiters = functools.reduce(lambda a, b: a + b if b != 'space' else a + ' ', separators)
+    reserved_words = tokens.readline().split()
+    tokens.close()
 
-    print(hash_table.get_index(hash_value, index))
+    with open("source2.txt", "r", encoding="utf8") as source_code:
+        pif = list()
+        inside_string = False
+        string = ""
+        for line, raw_code in enumerate(source_code):
+            # need to change this to split using the delimiters directly
+            mod_code = ""
+            for c in raw_code:
+                if c in separators:
+                    mod_code += " "
+                else:
+                    mod_code += c
+            tokenized_code = mod_code.split()
+            print(tokenized_code)
 
-    print(hash_table.get_value(23))
-    hash_table.insert(23)
-    print(hash_table.get_value(23))
+            for token in tokenized_code:
+                if inside_string:
+                    string += token
 
-    print()
-    hash_table.display()
-    print()
+                if token[0] == "\"":
+                    if inside_string:
+                        print("bblexical error - ", token, " line - ", line)
+                    else:
+                        inside_string = True
+                        string += token
+
+                if token[-1] == "\"":
+                    if not inside_string:
+                        print("aalexical error - ", token, " line - ", line)
+                    else:
+                        inside_string = False
+                        string += token
+                        index = hash_table.insert(string)
+                        string = ""
+                        pif.append(("const", index))
+                if not inside_string:
+                    if token in reserved_words or token in operators:
+                        pif.append((token, -1))
+                    elif is_identifier(token):
+                        index = hash_table.insert(token)
+                        pif.append(("id", index))
+                    elif is_integer_constant(token):
+                        index = hash_table.insert(token)
+                        pif.append(("id", index))
+                    else:
+                        print("cclexical error - ", token, " line - ", line)
+
+        if inside_string:
+            print("ddlexical error - unfinished string")
+        for f in pif:
+            print(f)
+        hash_table.display()

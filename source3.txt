@@ -1,0 +1,14 @@
+{
+	int a;
+	int b;
+	read(a);
+	read(b);
+	while (b != a)
+	{
+		if (a > b)
+		a -= b;
+	else
+		b -= a;
+	}
+	write(“The GCD is: “, a);
+}
