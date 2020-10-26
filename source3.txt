@@ -10,5 +10,5 @@
 	else
 		b -= a;
 	}
-	write(“The GCD is: “, a);
+	write("The GCD is: ", a);
 }
