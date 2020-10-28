@@ -1,4 +1,5 @@
 import re
+from nltk.tokenize import regexp_tokenize
 
 TABLE_SIZE = 10
 
@@ -26,9 +27,24 @@ class HashTable:
 
             print()
 
+    def write(self):
+        with open("symTable.out", "w") as out:
+            out.write("Implemented on hashtable\n")
+            for i in range(self.table_size):
+                out.write(str(i) + " ")
+
+                for j in self.table[i]:
+                    out.write("--> ")
+                    out.write(j + " ")
+
+                out.write("\n")
+
     def insert(self, value):
         string_value = str(value)
         hash_key = self.hash(string_value)
+        for index, item in enumerate(self.table[hash_key]):
+            if item == string_value:
+                return hash_key, index
         self.table[hash_key].append(string_value)
         return hash_key, len(self.table[hash_key]) - 1
 
@@ -56,6 +72,11 @@ def is_integer_constant(token: str):
     return None is not re.fullmatch(integer_regex, token)
 
 
+def is_character_constant(token: str):
+    character_regex = '^\'.\'$'
+    return None is not re.fullmatch(character_regex, token)
+
+
 if __name__ == "__main__":
     hash_table = HashTable(TABLE_SIZE, custom_hash)
     tokens = open("token.in", "r")
@@ -64,14 +85,24 @@ if __name__ == "__main__":
     reserved_words = tokens.readline().split()
     tokens.close()
 
-    with open("sourcep1err.txt", "r", encoding="utf8") as source_code:
+    with open("source.txt", "r", encoding="utf8") as source_code:
         pif = list()
         inside_string = False
         string = ""
+        string_start = -1
         for line, raw_code in enumerate(source_code):
-            tokenized_code = re.split("\[|]|{|}|\(|\)|,| |;|\n|\t", raw_code)
+            tokenized_code = ""
+            for char in raw_code:
+                if char in "[]{}(),;":
+                    tokenized_code += (" " + char + " ")
+                else:
+                    tokenized_code += char
+            tokenized_code = tokenized_code.split()
 
             for token in tokenized_code:
+                if "//" == token[:2]:
+                    break
+
                 if "" == token:
                     continue
                 if '"' in token:
@@ -80,13 +111,14 @@ if __name__ == "__main__":
                             print("lexical error - <", token, "> line - ", line)
                         else:
                             inside_string = True
-                            string += token[1:] + " "
+                            string_start = line
+                            string += token + " "
                     elif token[-1] == '"':
                         if not inside_string:
                             print("lexical error - <<", token, ">> line - ", line)
                         else:
                             inside_string = False
-                            string += token[:-1]
+                            string += token
                             index = hash_table.insert(string)
                             string = ""
                             pif.append(("const", index))
@@ -95,19 +127,23 @@ if __name__ == "__main__":
                 elif inside_string:
                     string += token + " "
                 else:
-                    if token in reserved_words or token in operators:
+                    if token in reserved_words or token in operators or token in "[]{}(),;":
                         pif.append((token, -1))
                     elif is_identifier(token):
                         index = hash_table.insert(token)
                         pif.append(("id", index))
-                    elif is_integer_constant(token):
+                    elif is_integer_constant(token) or is_character_constant(token):
                         index = hash_table.insert(token)
-                        pif.append(("id", index))
+                        pif.append(("const", index))
                     else:
                         print("lexical error - <:", token, ":> line - ", line)
 
         if inside_string:
-            print("lexical error - unfinished string")
-        for f in pif:
-            print(f)
-        hash_table.display()
+            print("lexical error - unfinished string - starting at line", string_start)
+        with open("pif.out", "w") as out:
+            for f in pif:
+                out.write(str(f[0]))
+                out.write(" --> ")
+                out.write(str(f[1]))
+                out.write("\n")
+        hash_table.write()
