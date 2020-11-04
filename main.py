@@ -1,5 +1,5 @@
 import re
-from nltk.tokenize import regexp_tokenize
+from finite_state_machine_reader import FiniteAutomaton
 
 TABLE_SIZE = 10
 
@@ -13,6 +13,8 @@ def custom_hash(value):
 
 class HashTable:
     def __init__(self, table_size, hash_function):
+        self.identifier_automaton = FiniteAutomaton("identifier.in")
+        self.int_const_automaton = FiniteAutomaton("int_const.in")
         self.table_size = table_size
         self.table = [[] for _ in range(table_size)]
         self.hash = hash_function
@@ -61,15 +63,15 @@ class HashTable:
         except IndexError:
             return None
 
+    def is_identifier(self, token: str):
+        # identifier_regex = '[a-zA-Z][0-9a-zA-Z]*'
+        # return None is not re.fullmatch(identifier_regex, token)
+        return self.identifier_automaton.check_sequence(token)
 
-def is_identifier(token: str):
-    identifier_regex = '[a-zA-Z][0-9a-zA-Z]*'
-    return None is not re.fullmatch(identifier_regex, token)
-
-
-def is_integer_constant(token: str):
-    integer_regex = '^([+-]?[1-9]\d*|0)$'
-    return None is not re.fullmatch(integer_regex, token)
+    def is_integer_constant(self, token: str):
+        # integer_regex = '^([+-]?[1-9]\d*|0)$'
+        # return None is not re.fullmatch(integer_regex, token)
+        return self.int_const_automaton.check_sequence(token)
 
 
 def is_character_constant(token: str):
@@ -129,10 +131,10 @@ if __name__ == "__main__":
                 else:
                     if token in reserved_words or token in operators or token in "[]{}(),;":
                         pif.append((token, -1))
-                    elif is_identifier(token):
+                    elif hash_table.is_identifier(token):
                         index = hash_table.insert(token)
                         pif.append(("id", index))
-                    elif is_integer_constant(token) or is_character_constant(token):
+                    elif hash_table.is_integer_constant(token) or is_character_constant(token):
                         index = hash_table.insert(token)
                         pif.append(("const", index))
                     else:
