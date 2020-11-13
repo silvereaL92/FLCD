@@ -12,20 +12,44 @@ class FiniteAutomaton:
     def read_file(self):
         results = list()
         with open(self.file, "r") as inp:
-            results.append(inp.readline()[1:-2].split(","))
-            results.append(inp.readline()[1:-2].split(","))
-            results.append(inp.readline()[:-1])
-            results.append(inp.readline()[1:-2].split(","))
+            states = inp.readline()[1:-2].split(",")
+            results.append(states)
+            alphabet = inp.readline()[1:-2].split(",")
+            results.append(alphabet)
+            start_state = inp.readline()[:-1]
+            if start_state not in states:
+                print("Start state not in set of states")
+            else:
+                print("No problem with start state")
+            results.append(start_state)
+            final_states = inp.readline()[1:-2].split(",")
+            problem = False
+            for state in final_states:
+                if state not in states:
+                    print("Final state " + state + " not in set of states")
+                    problem = True
+            if not problem:
+                print("No problem with final states")
+            results.append(final_states)
             transitions = dict()
             for line in inp:
                 tokens = line.split(";")
                 transition_start = tokens[0]
+                problem = False
+                if transition_start not in states:
+                    print("Transition start state " + transition_start + " not in set of states")
+                    problem = True
                 transition_input = tokens[1][1:-1].split(",")
-                transition_destination = tokens[2]
+                transition_destination = tokens[2][:-1]
+                if transition_destination not in states:
+                    print("Transition destination state " + transition_destination + " not in set of states")
+                    problem = True
                 for char in transition_input:
                     if (transition_start, char) not in transitions.keys():
                         transitions[(transition_start, char)] = list()
-                    transitions[(transition_start, char)].append(transition_destination[:-1])
+                    transitions[(transition_start, char)].append(transition_destination)
+                if not problem:
+                    print("No problem with transition states")
             results.append(transitions)
 
         return results
@@ -67,6 +91,7 @@ class FiniteAutomaton:
         print("3 - start state")
         print("4 - set of final states")
         print("5 - transition function")
+        print("6 - deterministic ?")
         print("x - exit")
         while True:
             user_input = input("your option: ")
@@ -85,6 +110,9 @@ class FiniteAutomaton:
             if user_input == "5":
                 for tran in self.transitions:
                     print(tran, " -> ", self.transitions[tran])
+                continue
+            if user_input == "6":
+                print(self.is_deterministic())
                 continue
             if user_input == "x":
                 break
