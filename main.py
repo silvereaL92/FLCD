@@ -87,7 +87,7 @@ if __name__ == "__main__":
     reserved_words = tokens.readline().split()
     tokens.close()
 
-    with open("source.txt", "r", encoding="utf8") as source_code:
+    with open("source3.txt", "r", encoding="utf8") as source_code:
         pif = list()
         inside_string = False
         string = ""
@@ -123,7 +123,7 @@ if __name__ == "__main__":
                             string += token
                             index = hash_table.insert(string)
                             string = ""
-                            pif.append(("const", index))
+                            pif.append(("constant", index))
                     else:
                         print("lexical error - <.", token, ".> line - ", line)
                 elif inside_string:
@@ -133,10 +133,10 @@ if __name__ == "__main__":
                         pif.append((token, -1))
                     elif hash_table.is_identifier(token):
                         index = hash_table.insert(token)
-                        pif.append(("id", index))
+                        pif.append(("identifier", index))
                     elif hash_table.is_integer_constant(token) or is_character_constant(token):
                         index = hash_table.insert(token)
-                        pif.append(("const", index))
+                        pif.append(("constant", index))
                     else:
                         print("lexical error - <:", token, ":> line - ", line)
 

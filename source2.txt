@@ -15,5 +15,5 @@
 		sum += arr[i];
 		i += 1;
 	}
-	write("The sum is ", sum);
+	write("The sum is " sum);
 }

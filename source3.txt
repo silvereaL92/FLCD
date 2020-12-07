@@ -6,9 +6,9 @@
 	while (b != a)
 	{
 		if (a > b)
-		a -= b;
-	else
-		b -= a;
+		    a -= b;
+	    else
+		    b -= a;
 	}
-	write("The GCD is: ", a);
+	write("The GCD is: " a);
 }

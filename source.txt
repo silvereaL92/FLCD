@@ -2,7 +2,7 @@
 	int a;
 	int b;
 	int c;
-	read(a);
+	read(a[b]);
 	read(b);
 	read(c);
 	if (a >= b)
